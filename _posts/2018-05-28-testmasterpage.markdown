@@ -6,3 +6,4 @@ categories: jekyll update
 ---
 
 Test Master Page!
+Version 1.0!
