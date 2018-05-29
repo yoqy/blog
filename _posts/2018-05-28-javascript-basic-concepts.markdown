@@ -111,7 +111,7 @@ class封装了构造函数和原型；而new调用构造函数生成一个继承
 ![prototype-chain](/assets/images/js-constructor.png)  
 # 函数（Function）
 JavaScript中，函数是一等公民（first-class function）。函数可以作为其他函数的参数或者返回值，赋值给变量或存储在数据结构中。这将会遇到两个‘函数类型参数问题’（funarg problem）。  
-## 下传函数类型参数（downwards funarg problem）
+### 下传函数类型参数（downwards funarg problem）
 ```javascript
 let x = 10;
  
@@ -129,7 +129,7 @@ bar(foo);
 ```
 在foo函数中，x既不是内部变量，也不是函数参数，而是作为**‘自由变量’**出现。  
 最后结果是10，说明函数是**‘静态作用域’（Static scope）**或者叫**‘词法作用域’（lexical scope）**。即函数**‘自由变量’**的引用取决于函数定义的时候，而跟函数的调用没有关系。  
-## 上传函数类型参数（upwards funarg problem）  
+### 上传函数类型参数（upwards funarg problem）  
 这个涉及到**‘闭包’（Closure）**的问题：
 ```javascript
 function foo() {
@@ -154,3 +154,112 @@ bar(); // 结果是10, 不是 20！
 函数在执行的时候，会创建一个新的**执行环境（activation environment）**用于存储本地变量和函数参数。  
 在‘下传函数类型参数问题’中，调用foo时创建的**执行环境**，在foo运行结束后就被销毁了。  
 在‘上传函数类型参数问题’中，bar捕获了foo创建的**执行环境**，并向上传递给了foo的调用者。又因为是**‘静态作用域’**，所以foo创建的**执行环境**，在foo运行结束后将不会销毁而保存起来。
+# This
+可以将this看作是一个只能读取，不能修改的隐式传递的参数。
+this主要用于基于类的面向对象编程（class-based OOP），例子如下：
+```javascript
+class Point {
+  constructor(x, y) {
+    this._x = x;
+    this._y = y;
+  }
+ 
+  getX() {
+    return this._x;
+  }
+ 
+  getY() {
+    return this._y;
+  }
+}
+ 
+let p1 = new Point(1, 2);
+let p2 = new Point(3, 4);
+
+// 类Point的两个实例p1，p2都能访问'getX'，'getY'（被当作this传递）
+console.log(
+  p1.getX(), // 1
+  p2.getX(), // 3
+);
+```
+
+this是**动态作用域（dynamic scopes）**，即this的值取决于调用方式。  
+this取值的几种情况：
+### 全局代码中this的值
+```javascript
+// 显式定义全局对象的属性
+this.a = 10; // global.a = 10
+console.log(a); // 10
+ 
+// 通过赋值给不受限的标识符来进行隐式定义
+b = 20;
+console.log(this.b); // 20
+ 
+// 通过变量声明来进行隐式定义
+// 因为全局上下文中的变量对象就是全局对象本身
+var c = 30;
+console.log(this.c); // 30
+```  
+###  函数代码中This的值
+```javascript
+var foo = {x: 10};
+var bar = {
+  x: 20,
+  test: function () {
+    console.log(this === bar);
+    console.log(this.x);
+  }
+};
+ 
+bar.test(); // true, 20
+
+// 相同的函数以不同的调用方式，this的值也就不同了
+var exampleFunc = bar.test;
+console.log(exampleFunc === bar.test); // true
+exampleFunc(); // false, undefined
+
+foo.test = bar.test;
+// 但是，这个时候，this的值又会变成“foo”
+// 纵然我们调用的是同一个函数
+foo.test(); // false, 10
+```
+纵然是全局函数，this的值也会随着函数调用方式的不同而不同：
+```javascript
+function foo() {
+  console.log(this);
+}
+foo(); // global
+ 
+// 然而，同样的函数，以另外一种调用方式的话，this的值就不同了
+console.log(foo === foo.prototype.constructor); // true
+foo.prototype.constructor(); // foo.prototype
+```  
+###  函数作为构造器被调用时this的值
+```javascript
+function A() {
+  alert(this); // newly created object, below - "a" object
+  this.x = 10;
+}
+ 
+var a = new A();
+alert(a.x); // 10
+```  
+###  手动设置函数调用时this的值
+```javascript
+var b = 10;
+function a(c) {
+  console.log(this.b);
+  console.log(c);
+}
+ 
+a(20); // this === global, this.b == 10, c == 20
+ 
+a.call({b: 20}, 30); // this === {b: 20}, this.b == 20, c == 30
+a.apply({b: 30}, [40]) // this === {b: 30}, this.b == 30, c == 40
+```  
+  
+  
+
+###  参考链接
+[JavaScript. The Core: 2nd Edition](http://dmitrysoshnikov.com/ecmascript/javascript-the-core-2nd-edition/#execution-context)
+
