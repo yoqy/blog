@@ -5,8 +5,6 @@ date:   2018-05-28 20:34:53 +0800
 categories: jekyll update
 ---
 JavaScript是面向对象，基于“原型”的解释型语言。  
-ES6引入Class，Class的继承，实际上可以理解为语法糖。虽然看起来更清晰和方便了，但对理解语言本身却带来了不少麻烦。  
-下面是对几个基础概念的整理。
 
 # 对象（Object）  
 
@@ -110,4 +108,49 @@ class封装了构造函数和原型；而new调用构造函数生成一个继承
 构造函数用隐式属性prototype指向‘原型’；‘原型’用隐式属性constructor指向构造函数。
 如下图：  
    
-![prototype-chain](/assets/images/js-constructor.png)
+![prototype-chain](/assets/images/js-constructor.png)  
+# 函数（Function）
+JavaScript中，函数是一等公民（first-class function）。函数可以作为其他函数的参数或者返回值，赋值给变量或存储在数据结构中。这将会遇到两个‘函数类型参数问题’（funarg problem）。  
+## 下传函数类型参数（downwards funarg problem）
+```javascript
+let x = 10;
+ 
+function foo() {
+  console.log(x);
+}
+ 
+function bar(funArg) {
+  let x = 20;
+  funArg(); // 结果是10, 不是 20！
+}
+ 
+// 将'foo'作为参数传给'bar'。
+bar(foo);
+```
+在foo函数中，x既不是内部变量，也不是函数参数，而是作为**‘自由变量’**出现。  
+最后结果是10，说明函数是**‘静态作用域’（Static scope）**或者叫**‘词法作用域’（lexical scope）**。即函数**‘自由变量’**的引用取决于函数定义的时候，而跟函数的调用没有关系。  
+## 上传函数类型参数（upwards funarg problem）  
+这个涉及到**‘闭包’（Closure）**的问题：
+```javascript
+function foo() {
+  let x = 10;
+   
+  // 闭包, 捕获了`foo`的执行环境。
+  function bar() {
+    return x;
+  }
+ 
+  // 上传函数类型参数。
+  return bar;
+}
+ 
+let x = 20;
+ 
+// 调用`foo`返回`bar`闭包。
+let bar = foo();
+ 
+bar(); // 结果是10, 不是 20！
+```  
+函数在执行的时候，会创建一个新的**执行环境（activation environment）**用于存储本地变量和函数参数。  
+在‘下传函数类型参数问题’中，调用foo时创建的**执行环境**，在foo运行结束后就被销毁了。  
+在‘上传函数类型参数问题’中，bar捕获了foo创建的**执行环境**，并向上传递给了foo的调用者。又因为是**‘静态作用域’**，所以foo创建的**执行环境**，在foo运行结束后将不会销毁而保存起来。
