@@ -146,5 +146,5 @@ generate以闭包的方式，生成了一个状态机，用_context维护上下�
 ----
 
 ###  参考链接
-[深入理解Generators](http://www.alloyteam.com/2016/02/generators-in-depth/)
+[深入理解Generators](http://www.alloyteam.com/2016/02/generators-in-depth/)   
 [Iterators and generators](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Iterators_and_Generators)
